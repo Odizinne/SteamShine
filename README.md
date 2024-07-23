@@ -23,3 +23,8 @@ Fill `apps.json` and `steamapps folder` path.
 
 Set check interval. SteamShine will only write to disk if an update in `apps.json` is needed.
 Check `Start SteamShine` and close the window. SteamShine will periodically check for added or removed steam games.
+
+## To-do
+- Add ability to stop stream when stopping game
+- Add ability to use multiple steamapps path
+- Display a list of managed apps in settings
