@@ -26,5 +26,5 @@ Check `Start SteamShine` and close the window. SteamShine will periodically chec
 
 ## To-do
 - ~~Add ability to stop stream when stopping game~~
+- ~~Display a list of managed apps in settings~~
 - Add ability to use multiple steamapps path
-- Display a list of managed apps in settings
