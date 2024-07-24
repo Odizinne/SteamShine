@@ -67,6 +67,8 @@ class MainWindow(QMainWindow):
         tray_menu.addAction(quit_action)
         tray_icon.setContextMenu(tray_menu)
 
+        tray_icon.setToolTip("SteamShine")
+
         settings_action.triggered.connect(self.show)
         quit_action.triggered.connect(QApplication.instance().quit)
 
