@@ -7,6 +7,7 @@ from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtCore import QTimer
 from ui_mainwindow import Ui_SteamShine
 from acf_parser import ACFParser
+from color_utils import set_frame_color_based_on_window
 
 
 class MainWindow(QMainWindow):
@@ -20,6 +21,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("SteamShine - Settings")
         self.setWindowIcon(QIcon('icons/icon.png'))
         self.setFixedSize(self.size())
+        self.setup_frame_color()
         self.init_app_list = True
         self.force_update = False
         self.load_settings()
@@ -27,6 +29,10 @@ class MainWindow(QMainWindow):
         self.create_tray_icon()
         self.init_ui_connections()
         self.create_parse_timer()
+
+    def setup_frame_color(self):
+        set_frame_color_based_on_window(self, self.ui.settingsFrame)
+        set_frame_color_based_on_window(self, self.ui.pathFrame)
 
     def create_parse_timer(self):
         self.parse_timer = QTimer(self)
@@ -245,5 +251,6 @@ class MainWindow(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    app.setStyle('Fusion')
     window = MainWindow()
     sys.exit(app.exec())

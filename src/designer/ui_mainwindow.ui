@@ -37,7 +37,7 @@
      </widget>
     </item>
     <item row="3" column="0">
-     <widget class="QFrame" name="gridFrame">
+     <widget class="QFrame" name="pathFrame">
       <property name="frameShape">
        <enum>QFrame::Shape::StyledPanel</enum>
       </property>
@@ -154,7 +154,7 @@
      </widget>
     </item>
     <item row="1" column="0">
-     <widget class="QFrame" name="gridFrame">
+     <widget class="QFrame" name="settingsFrame">
       <property name="frameShape">
        <enum>QFrame::Shape::StyledPanel</enum>
       </property>
