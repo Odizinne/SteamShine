@@ -2,7 +2,7 @@ import sys
 import os
 import json
 import winshell
-from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QSystemTrayIcon, QMenu
+from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QSystemTrayIcon, QMenu, QListWidgetItem
 from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtCore import QTimer
 from ui_mainwindow import Ui_SteamShine
@@ -20,6 +20,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("SteamShine - Settings")
         self.setWindowIcon(QIcon('icons/icon.png'))
         self.setFixedSize(self.size())
+        self.init_app_list = True
         self.load_settings()
         self.check_startup_shortcut()
         self.create_tray_icon()
@@ -165,7 +166,19 @@ class MainWindow(QMainWindow):
         unmanaged_entries = [app for app in existing_entries if 'detached' not in app or not app['detached']]
         managed_entries = [app for app in existing_entries if 'detached' in app and app['detached']]
         managed_apps = {app['name']: app for app in managed_entries}
+
+        current_apps_set = set(managed_apps.keys())
+        new_apps_set = set(new_apps.keys())
+        
+        if current_apps_set == new_apps_set and not self.init_app_list:
+            print("No changes detected, apps.json update not required.")
+            return
+
+        for app_name in current_apps_set - new_apps_set:
+            del managed_apps[app_name]
+
         managed_apps.update(new_apps)
+
         sorted_managed_apps = sorted(managed_apps.values(), key=lambda x: x['name'])
 
         new_data = {
@@ -175,7 +188,17 @@ class MainWindow(QMainWindow):
 
         with open(apps_json_path, 'w') as apps_file:
             json.dump(new_data, apps_file, indent=4)
-            print("apps.json updated")
+            print("apps.json updated with changes")
+
+        self.update_game_list_widget(sorted_managed_apps)
+        self.init_app_list = False
+
+    def update_game_list_widget(self, managed_games):
+        self.ui.gameListWidget.clear()
+
+        for game in managed_games:
+            item = QListWidgetItem(game['name'])
+            self.ui.gameListWidget.addItem(item)
 
     def create_startup_shortcut(self):
         target = sys.executable
