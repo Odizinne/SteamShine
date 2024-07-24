@@ -21,6 +21,7 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon('icons/icon.png'))
         self.setFixedSize(self.size())
         self.init_app_list = True
+        self.force_update = False
         self.load_settings()
         self.check_startup_shortcut()
         self.create_tray_icon()
@@ -39,6 +40,11 @@ class MainWindow(QMainWindow):
         self.ui.timerSpinbox.valueChanged.connect(self.on_timerSpinBox_valueChanged)
         self.ui.startCheckBox.stateChanged.connect(self.on_startCheckBox_stateChanged)
         self.ui.startupCheckBox.stateChanged.connect(self.on_startupCheckBox_stateChanged)
+
+    def on_advancedCheckBox_stateChanged(self):
+        self.force_update = True
+        self.update_apps_json()
+        self.save_settings()
 
     def on_startupCheckBox_stateChanged(self):
         if self.ui.startupCheckBox.isChecked():
@@ -107,7 +113,8 @@ class MainWindow(QMainWindow):
             'apps_json_path': self.ui.appLineEdit.text(),
             'steam_library_path': self.ui.steamappsLineEdit.text(),
             'check_interval': self.ui.timerSpinbox.value(),
-            'start': self.ui.startCheckBox.isChecked()
+            'start': self.ui.startCheckBox.isChecked(),
+            'advanced': self.ui.advancedCheckBox.isChecked()
         }
         os.makedirs(os.path.dirname(self.CONFIG_PATH), exist_ok=True)
         with open(self.CONFIG_PATH, 'w') as config_file:
@@ -121,6 +128,7 @@ class MainWindow(QMainWindow):
                 self.ui.steamappsLineEdit.setText(config.get('steam_library_path', ''))
                 self.ui.timerSpinbox.setValue(config.get('check_interval', 10))
                 self.ui.startCheckBox.setChecked(config.get('start', False))
+                self.ui.advancedCheckBox.setChecked(config.get('advanced', False))
         else:
             self.show()
 
@@ -138,22 +146,33 @@ class MainWindow(QMainWindow):
         exitgame_path = os.path.abspath(os.path.join('dependencies', 'exitgame.exe'))
 
         new_apps = {}
-        for game in games:
-            app_id = game['appid']
-            app_name = game['name']
-            new_apps[app_name] = {
-                'name': app_name,
-                'detached': [f'steam://rungameid/{app_id}'],
-                'cmd': f'"{dummyprocess_path}"',
-                "working-dir": f'"{working_dir}"',
-                'prep-cmd': [
-                    {
-                        'do': "",
-                        'undo': f'"{exitgame_path}"',
-                        'elevated': 'false'
-                    }
-                ]
-            }
+
+        if self.ui.advancedCheckBox.isChecked():
+            for game in games:
+                app_id = game['appid']
+                app_name = game['name']
+                new_apps[app_name] = {
+                    'name': app_name,
+                    'detached': [f'steam://rungameid/{app_id}'],
+                    'cmd': f'"{dummyprocess_path}"',
+                    "working-dir": f'"{working_dir}"',
+                    'prep-cmd': [
+                        {
+                            'do': "",
+                            'undo': f'"{exitgame_path}"',
+                            'elevated': 'false'
+                        }
+                    ]
+                }
+
+        else:
+            for game in games:
+                app_id = game['appid']
+                app_name = game['name']
+                new_apps[app_name] = {
+                    'name': app_name,
+                    'detached': [f'steam://rungameid/{app_id}']
+                }
 
         if not os.path.exists(apps_json_path):
             with open(apps_json_path, 'w') as apps_file:
@@ -170,9 +189,10 @@ class MainWindow(QMainWindow):
         current_apps_set = set(managed_apps.keys())
         new_apps_set = set(new_apps.keys())
         
-        if current_apps_set == new_apps_set and not self.init_app_list:
-            print("No changes detected, apps.json update not required.")
-            return
+        if not self.force_update:
+            if current_apps_set == new_apps_set and not self.init_app_list:
+                print("No changes detected, apps.json update not required.")
+                return
 
         for app_name in current_apps_set - new_apps_set:
             del managed_apps[app_name]
@@ -192,6 +212,7 @@ class MainWindow(QMainWindow):
 
         self.update_game_list_widget(sorted_managed_apps)
         self.init_app_list = False
+        self.force_update = False
 
     def update_game_list_widget(self, managed_games):
         self.ui.gameListWidget.clear()

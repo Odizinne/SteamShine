@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>541</width>
-    <height>546</height>
+    <height>567</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -177,7 +177,30 @@
        <property name="spacing">
         <number>12</number>
        </property>
-       <item row="1" column="2">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Check rate (seconds)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="QCheckBox" name="startCheckBox">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>25</height>
+          </size>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::LayoutDirection::RightToLeft</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
         <widget class="QCheckBox" name="startupCheckBox">
          <property name="minimumSize">
           <size>
@@ -193,12 +216,31 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label">
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>25</height>
+          </size>
+         </property>
          <property name="text">
-          <string>Check rate (seconds)</string>
+          <string>Run at startup</string>
          </property>
         </widget>
+       </item>
+       <item row="0" column="1">
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
        <item row="0" column="2">
         <widget class="QSpinBox" name="timerSpinbox">
@@ -222,8 +264,8 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_3">
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_2">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -231,12 +273,30 @@
           </size>
          </property>
          <property name="text">
-          <string>Run at startup</string>
+          <string>Start SteamShine</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="2">
-        <widget class="QCheckBox" name="startCheckBox">
+       <item row="1" column="0">
+        <widget class="QLabel" name="advancedLabel">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>25</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>Advanced mode will try to bind to launched game executable,
+allowing to quit stream on game ending and vice versa.
+This is experimental and might not work everytime.</string>
+         </property>
+         <property name="text">
+          <string>Advanced mode ⚠️</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QCheckBox" name="advancedCheckBox">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -250,32 +310,6 @@
           <string/>
          </property>
         </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_2">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>25</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Start SteamShine</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>
