@@ -24,7 +24,7 @@ executables = [
 
 
 setup(
-    name='makeSense',
+    name='SteamShine',
     version='1.0',
     options={"build_exe": build_exe_options},
     executables=executables,
