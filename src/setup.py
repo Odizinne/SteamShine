@@ -7,8 +7,8 @@ build_dir = "build/SteamShine"
 zip_include_packages = ['PyQt6']
 
 include_files = [
-    os.path.join(src_dir, 'icons/'), 
-
+    os.path.join(src_dir, 'icons/'),
+    os.path.join(src_dir, 'dependencies/'),
 ]
 
 build_exe_options = {

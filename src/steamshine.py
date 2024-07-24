@@ -130,6 +130,9 @@ class MainWindow(QMainWindow):
 
         parser = ACFParser(steam_apps_directory)
         games = parser.get_steam_games()
+        working_dir = os.path.abspath('dependencies')
+        dummyprocess_path = os.path.abspath(os.path.join('dependencies', 'steamshine-dummyprocess.exe'))
+        exitgame_path = os.path.abspath(os.path.join('dependencies', 'exitgame.exe'))
 
         new_apps = {}
         for game in games:
@@ -137,7 +140,16 @@ class MainWindow(QMainWindow):
             app_name = game['name']
             new_apps[app_name] = {
                 'name': app_name,
-                'cmd': f'steam://rungameid/{app_id}'
+                'detached': [f'steam://rungameid/{app_id}'],
+                'cmd': f'"{dummyprocess_path}"',
+                "working-dir": f'"{working_dir}"',
+                'prep-cmd': [
+                    {
+                        'do': "",
+                        'undo': f'"{exitgame_path}"',
+                        'elevated': 'false'
+                    }
+                ]
             }
 
         if not os.path.exists(apps_json_path):
@@ -148,8 +160,8 @@ class MainWindow(QMainWindow):
             old_data = json.load(apps_file)
 
         existing_entries = old_data.get('apps', [])
-        unmanaged_entries = [app for app in existing_entries if 'cmd' not in app or 'steam://rungameid/' not in app['cmd']]
-        managed_entries = [app for app in existing_entries if 'cmd' in app and 'steam://rungameid/' in app['cmd']]
+        unmanaged_entries = [app for app in existing_entries if 'detached' not in app or not app['detached']]
+        managed_entries = [app for app in existing_entries if 'detached' in app and app['detached']]
         managed_apps = {app['name']: app for app in managed_entries}
         managed_apps.update(new_apps)
         sorted_managed_apps = sorted(managed_apps.values(), key=lambda x: x['name'])
@@ -161,8 +173,7 @@ class MainWindow(QMainWindow):
 
         with open(apps_json_path, 'w') as apps_file:
             json.dump(new_data, apps_file, indent=4)
-
-        print("apps.json updated")
+            print("apps.json updated")
 
     def create_startup_shortcut(self):
         target = sys.executable
