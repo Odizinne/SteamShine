@@ -25,6 +25,6 @@ Set check interval. SteamShine will only write to disk if an update in `apps.jso
 Check `Start SteamShine` and close the window. SteamShine will periodically check for added or removed steam games.
 
 ## To-do
-- Add ability to stop stream when stopping game
+- ~~Add ability to stop stream when stopping game~~
 - Add ability to use multiple steamapps path
 - Display a list of managed apps in settings
