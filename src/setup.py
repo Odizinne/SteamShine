@@ -8,7 +8,6 @@ zip_include_packages = ['PyQt6']
 
 include_files = [
     os.path.join(src_dir, 'icons/'),
-    #os.path.join(src_dir, 'dependencies/'),
 ]
 
 build_exe_options = {
@@ -19,7 +18,7 @@ build_exe_options = {
 }
 
 executables = [
-    Executable(os.path.join(src_dir, 'steamshine.py'), base=None, icon=os.path.join(src_dir, "icons/icon.ico"), target_name="SteamShine")
+    Executable(os.path.join(src_dir, 'steamshine.py'), base="Win32GUI", icon=os.path.join(src_dir, "icons/icon.ico"), target_name="SteamShine")
 ]
 
 

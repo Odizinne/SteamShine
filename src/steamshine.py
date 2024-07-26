@@ -143,36 +143,31 @@ class MainWindow(QMainWindow):
     def update_apps_json(self):
         steam_apps_directory = self.ui.steamappsLineEdit.text()
         apps_json_path = self.ui.appLineEdit.text()
-
         if not steam_apps_directory or not apps_json_path or not self.ui.startCheckBox.isChecked():
             return
 
         parser = ACFParser(steam_apps_directory)
         games = parser.get_steam_games()
         working_dir = os.path.abspath(sys.executable)
-        #dummyprocess_path = os.path.abspath(os.path.join('dependencies', 'steamshine-dummyprocess.exe'))
-        #exitgame_path = os.path.abspath(os.path.join('dependencies', 'exitgame.exe'))
+        executable = os.path.abspath(sys.executable)
 
         new_apps = {}
-
         if self.ui.advancedCheckBox.isChecked():
             for game in games:
                 app_id = game['appid']
                 app_name = game['name']
                 new_apps[app_name] = {
                     'name': app_name,
-                    'detached': [f'steam://rungameid/{app_id}'],
-                    'cmd': f'"{sys.executable}" --dummy-process "{steam_apps_directory}"',
-                    "working-dir": f'"{working_dir}"',
+                    'cmd': f'cmd /c ""{executable}" --monitor-process "{app_id}""',
+                    'working-dir': working_dir,
                     'prep-cmd': [
                         {
                             'do': "",
-                            'undo': f'"{sys.executable}" --exit-game',
+                            'undo': f'cmd /c ""{executable}" --exit-game"',
                             'elevated': 'false'
                         }
                     ]
                 }
-
         else:
             for game in games:
                 app_id = game['appid']
@@ -190,28 +185,13 @@ class MainWindow(QMainWindow):
             old_data = json.load(apps_file)
 
         existing_entries = old_data.get('apps', [])
-        unmanaged_entries = [app for app in existing_entries if 'detached' not in app or not app['detached']]
-        managed_entries = [app for app in existing_entries if 'detached' in app and app['detached']]
-        managed_apps = {app['name']: app for app in managed_entries}
-
-        current_apps_set = set(managed_apps.keys())
-        new_apps_set = set(new_apps.keys())
-        
-        if not self.force_update:
-            if current_apps_set == new_apps_set and not self.init_app_list:
-                print("No changes detected, apps.json update not required.")
-                return
-
-        for app_name in current_apps_set - new_apps_set:
-            del managed_apps[app_name]
-
-        managed_apps.update(new_apps)
-
-        sorted_managed_apps = sorted(managed_apps.values(), key=lambda x: x['name'])
-
+        preserved_entries = [entry for entry in existing_entries if 'name' in entry and entry['name'] not in new_apps]
+        preserved_entries_dict = {entry['name']: entry for entry in preserved_entries}
+        preserved_entries_dict.update(new_apps)
+        sorted_managed_apps = sorted(preserved_entries_dict.values(), key=lambda x: x['name'])
         new_data = {
             "env": old_data.get("env", {}),
-            "apps": unmanaged_entries + sorted_managed_apps
+            "apps": sorted_managed_apps
         }
 
         with open(apps_json_path, 'w') as apps_file:
@@ -256,15 +236,13 @@ def main():
     #DEFAULT_STEAMAPPS_PATH = r"C:\Program Files (x86)\Steam\steamapps"
     parser = argparse.ArgumentParser(description="SteamShine Application")
     parser.add_argument('--exit-game', action='store_true')
-    parser.add_argument('--dummy-process', type=str)
+    parser.add_argument('--monitor-process', type=str)
     args = parser.parse_args()
 
     if args.exit_game:
         exit_game()
-        sys.exit(0)
-    elif args.dummy_process:
-        monitor_steam_process(args.dummy_process)
-        sys.exit(0)
+    elif args.monitor_process:
+        monitor_steam_process(args.monitor_process)
     else:
         print("Starting SteamShine GUI")
         app = QApplication(sys.argv)

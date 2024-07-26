@@ -2,10 +2,13 @@ import psutil
 import time
 import os
 import signal
+import subprocess
+import sys
 
 DEFAULT_STEAMAPPS_PATH = r"C:\Program Files (x86)\Steam\steamapps"
-OUTPUT_FILE = "process_log.txt"
+OUTPUT_FILE = os.path.join(os.path.dirname(sys.executable), "process_log.txt")
 
+known_child_pids = set()
 
 def get_steam_process():
     for process in psutil.process_iter(attrs=['pid', 'name']):
@@ -16,18 +19,11 @@ def get_steam_process():
             continue
     return None
 
-def is_process_in_steamapps(process, steamapps_path):
-    try:
-        exe_path = process.exe()
-        return os.path.commonpath([exe_path.lower(), steamapps_path.lower()]) == steamapps_path.lower()
-    except (psutil.NoSuchProcess, psutil.AccessDenied):
-        return False
-
 def log_process(pid):
     with open(OUTPUT_FILE, 'a') as f:
         f.write(f"New process PID: {pid}\n")
 
-def monitor_steam_process(steamapps_path):
+def monitor_steam_process(game_id):
     global known_child_pids
     steam_process = get_steam_process()
 
@@ -42,13 +38,13 @@ def monitor_steam_process(steamapps_path):
     waiting_for_game_launch = True
 
     print("Monitoring for new processes launched by Steam...")
-
+    subprocess.run(["start", f"steam://rungameid/{game_id}"], shell=True)
     while True:
         try:
             steam_process = psutil.Process(steam_process.pid)
 
             current_children = steam_process.children(recursive=True)
-            current_child_pids = {child.pid for child in current_children if is_process_in_steamapps(child, steamapps_path)}
+            current_child_pids = {child.pid for child in current_children}
 
             new_processes = current_child_pids - known_child_pids - initial_child_pids
             if new_processes:
@@ -66,7 +62,7 @@ def monitor_steam_process(steamapps_path):
             if not known_child_pids and not waiting_for_game_launch:
                 print("All new game processes have closed. Exiting...")
                 break
-                
+
             if waiting_for_game_launch:
                 print("Waiting for a game to launch...")
 
