@@ -1,6 +1,7 @@
 import sys
 import os
 import json
+import argparse
 import winshell
 from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QSystemTrayIcon, QMenu, QListWidgetItem
 from PyQt6.QtGui import QIcon, QAction
@@ -8,6 +9,7 @@ from PyQt6.QtCore import QTimer
 from ui_mainwindow import Ui_SteamShine
 from acf_parser import ACFParser
 from color_utils import set_frame_color_based_on_window
+from steam_process_manager import exit_game, monitor_steam_process
 
 
 class MainWindow(QMainWindow):
@@ -147,9 +149,9 @@ class MainWindow(QMainWindow):
 
         parser = ACFParser(steam_apps_directory)
         games = parser.get_steam_games()
-        working_dir = os.path.abspath('dependencies')
-        dummyprocess_path = os.path.abspath(os.path.join('dependencies', 'steamshine-dummyprocess.exe'))
-        exitgame_path = os.path.abspath(os.path.join('dependencies', 'exitgame.exe'))
+        working_dir = os.path.abspath(sys.executable)
+        #dummyprocess_path = os.path.abspath(os.path.join('dependencies', 'steamshine-dummyprocess.exe'))
+        #exitgame_path = os.path.abspath(os.path.join('dependencies', 'exitgame.exe'))
 
         new_apps = {}
 
@@ -160,12 +162,12 @@ class MainWindow(QMainWindow):
                 new_apps[app_name] = {
                     'name': app_name,
                     'detached': [f'steam://rungameid/{app_id}'],
-                    'cmd': f'"{dummyprocess_path}"',
+                    'cmd': f'"{sys.executable}" --dummy-process "{steam_apps_directory}"',
                     "working-dir": f'"{working_dir}"',
                     'prep-cmd': [
                         {
                             'do': "",
-                            'undo': f'"{exitgame_path}"',
+                            'undo': f'"{sys.executable}" --exit-game',
                             'elevated': 'false'
                         }
                     ]
@@ -249,8 +251,26 @@ class MainWindow(QMainWindow):
         shortcut_path = os.path.join(winshell.startup(), "SteamShine.lnk")
         self.ui.startupCheckBox.setChecked(os.path.exists(shortcut_path))
 
+def main():
+    # These arguments are used by SteamShine itself.
+    #DEFAULT_STEAMAPPS_PATH = r"C:\Program Files (x86)\Steam\steamapps"
+    parser = argparse.ArgumentParser(description="SteamShine Application")
+    parser.add_argument('--exit-game', action='store_true')
+    parser.add_argument('--dummy-process', type=str)
+    args = parser.parse_args()
+
+    if args.exit_game:
+        exit_game()
+        sys.exit(0)
+    elif args.dummy_process:
+        monitor_steam_process(args.dummy_process)
+        sys.exit(0)
+    else:
+        print("Starting SteamShine GUI")
+        app = QApplication(sys.argv)
+        app.setStyle('Fusion')
+        window = MainWindow()
+        sys.exit(app.exec())
+
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    app.setStyle('Fusion')
-    window = MainWindow()
-    sys.exit(app.exec())
+    main()
