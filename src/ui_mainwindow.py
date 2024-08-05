@@ -134,7 +134,7 @@ class Ui_SteamShine(object):
 
     def retranslateUi(self, SteamShine):
         _translate = QtCore.QCoreApplication.translate
-        SteamShine.setWindowTitle(_translate("SteamShine", "MainWindow"))
+        SteamShine.setWindowTitle(_translate("SteamShine", "SteamShine - Settings"))
         self.label_5.setText(_translate("SteamShine", "Path settings"))
         self.appBrowseButton.setText(_translate("SteamShine", "Browse"))
         self.appLabel.setText(_translate("SteamShine", "Sunshine apps.json"))

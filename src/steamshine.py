@@ -5,7 +5,7 @@ import argparse
 import winshell
 from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QSystemTrayIcon, QMenu, QListWidgetItem
 from PyQt6.QtGui import QIcon, QAction
-from PyQt6.QtCore import QTimer
+from PyQt6.QtCore import QTimer, QTranslator, QLocale
 from ui_mainwindow import Ui_SteamShine
 from acf_parser import ACFParser
 from color_utils import set_frame_color_based_on_window
@@ -13,15 +13,14 @@ from steam_process_manager import exit_game, monitor_steam_process
 
 
 class MainWindow(QMainWindow):
-    CONFIG_PATH = os.path.join(os.getenv('APPDATA'), 'Steamshine', 'config.json')
+    CONFIG_PATH = os.path.join(os.getenv("APPDATA"), "Steamshine", "config.json")
 
     def __init__(self):
         super(MainWindow, self).__init__()
 
         self.ui = Ui_SteamShine()
         self.ui.setupUi(self)
-        self.setWindowTitle("SteamShine - Settings")
-        self.setWindowIcon(QIcon('icons/icon.png'))
+        self.setWindowIcon(QIcon("icons/icon.png"))
         self.setFixedSize(self.size())
         self.setup_frame_color()
         self.init_app_list = True
@@ -71,7 +70,7 @@ class MainWindow(QMainWindow):
 
     def create_tray_icon(self):
         tray_icon = QSystemTrayIcon(self)
-        tray_icon.setIcon(QIcon('icons/icon.png'))
+        tray_icon.setIcon(QIcon("icons/icon.png"))
         tray_icon.setVisible(True)
 
         tray_menu = QMenu()
@@ -92,12 +91,7 @@ class MainWindow(QMainWindow):
         self.hide()
 
     def browse_apps_json(self):
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Open apps.json",
-            "",
-            "JSON Files (*.json);;All Files (*)"
-        )
+        file_path, _ = QFileDialog.getOpenFileName(self, "Open apps.json", "", "JSON Files (*.json);;All Files (*)")
 
         if file_path:
             self.ui.appLineEdit.setText(file_path)
@@ -105,11 +99,7 @@ class MainWindow(QMainWindow):
         self.save_settings()
 
     def browse_steam_library(self):
-        folder_path = QFileDialog.getExistingDirectory(
-            self,
-            "Select Folder",
-            ""
-        )
+        folder_path = QFileDialog.getExistingDirectory(self, "Select Folder", "")
 
         if folder_path:
             self.ui.steamappsLineEdit.setText(folder_path)
@@ -118,25 +108,25 @@ class MainWindow(QMainWindow):
 
     def save_settings(self):
         config = {
-            'apps_json_path': self.ui.appLineEdit.text(),
-            'steam_library_path': self.ui.steamappsLineEdit.text(),
-            'check_interval': self.ui.timerSpinbox.value(),
-            'start': self.ui.startCheckBox.isChecked(),
-            'advanced': self.ui.advancedCheckBox.isChecked()
+            "apps_json_path": self.ui.appLineEdit.text(),
+            "steam_library_path": self.ui.steamappsLineEdit.text(),
+            "check_interval": self.ui.timerSpinbox.value(),
+            "start": self.ui.startCheckBox.isChecked(),
+            "advanced": self.ui.advancedCheckBox.isChecked(),
         }
         os.makedirs(os.path.dirname(self.CONFIG_PATH), exist_ok=True)
-        with open(self.CONFIG_PATH, 'w') as config_file:
+        with open(self.CONFIG_PATH, "w") as config_file:
             json.dump(config, config_file, indent=4)
 
     def load_settings(self):
         if os.path.exists(self.CONFIG_PATH):
-            with open(self.CONFIG_PATH, 'r') as config_file:
+            with open(self.CONFIG_PATH, "r") as config_file:
                 config = json.load(config_file)
-                self.ui.appLineEdit.setText(config.get('apps_json_path', ''))
-                self.ui.steamappsLineEdit.setText(config.get('steam_library_path', ''))
-                self.ui.timerSpinbox.setValue(config.get('check_interval', 10))
-                self.ui.startCheckBox.setChecked(config.get('start', False))
-                self.ui.advancedCheckBox.setChecked(config.get('advanced', False))
+                self.ui.appLineEdit.setText(config.get("apps_json_path", ""))
+                self.ui.steamappsLineEdit.setText(config.get("steam_library_path", ""))
+                self.ui.timerSpinbox.setValue(config.get("check_interval", 10))
+                self.ui.startCheckBox.setChecked(config.get("start", False))
+                self.ui.advancedCheckBox.setChecked(config.get("advanced", False))
         else:
             self.show()
 
@@ -154,47 +144,35 @@ class MainWindow(QMainWindow):
         new_apps = {}
         if self.ui.advancedCheckBox.isChecked():
             for game in games:
-                app_id = game['appid']
-                app_name = game['name']
+                app_id = game["appid"]
+                app_name = game["name"]
                 new_apps[app_name] = {
-                    'name': app_name,
-                    'cmd': f'cmd /c ""{executable}" --monitor-process "{app_id}""',
-                    'working-dir': working_dir,
-                    'prep-cmd': [
-                        {
-                            'do': "",
-                            'undo': f'cmd /c ""{executable}" --exit-game"',
-                            'elevated': 'false'
-                        }
-                    ]
+                    "name": app_name,
+                    "cmd": f'cmd /c ""{executable}" --monitor-process "{app_id}""',
+                    "working-dir": working_dir,
+                    "prep-cmd": [{"do": "", "undo": f'cmd /c ""{executable}" --exit-game"', "elevated": "false"}],
                 }
         else:
             for game in games:
-                app_id = game['appid']
-                app_name = game['name']
-                new_apps[app_name] = {
-                    'name': app_name,
-                    'detached': [f'steam://rungameid/{app_id}']
-                }
+                app_id = game["appid"]
+                app_name = game["name"]
+                new_apps[app_name] = {"name": app_name, "detached": [f"steam://rungameid/{app_id}"]}
 
         if not os.path.exists(apps_json_path):
-            with open(apps_json_path, 'w') as apps_file:
+            with open(apps_json_path, "w") as apps_file:
                 json.dump({"env": {}, "apps": []}, apps_file, indent=4)
 
-        with open(apps_json_path, 'r') as apps_file:
+        with open(apps_json_path, "r") as apps_file:
             old_data = json.load(apps_file)
 
-        existing_entries = old_data.get('apps', [])
-        preserved_entries = [entry for entry in existing_entries if 'name' in entry and entry['name'] not in new_apps]
-        preserved_entries_dict = {entry['name']: entry for entry in preserved_entries}
+        existing_entries = old_data.get("apps", [])
+        preserved_entries = [entry for entry in existing_entries if "name" in entry and entry["name"] not in new_apps]
+        preserved_entries_dict = {entry["name"]: entry for entry in preserved_entries}
         preserved_entries_dict.update(new_apps)
-        sorted_managed_apps = sorted(preserved_entries_dict.values(), key=lambda x: x['name'])
-        new_data = {
-            "env": old_data.get("env", {}),
-            "apps": sorted_managed_apps
-        }
+        sorted_managed_apps = sorted(preserved_entries_dict.values(), key=lambda x: x["name"])
+        new_data = {"env": old_data.get("env", {}), "apps": sorted_managed_apps}
 
-        with open(apps_json_path, 'w') as apps_file:
+        with open(apps_json_path, "w") as apps_file:
             json.dump(new_data, apps_file, indent=4)
             print("apps.json updated with changes")
 
@@ -206,7 +184,7 @@ class MainWindow(QMainWindow):
         self.ui.gameListWidget.clear()
 
         for game in managed_games:
-            item = QListWidgetItem(game['name'])
+            item = QListWidgetItem(game["name"])
             self.ui.gameListWidget.addItem(item)
 
     def create_startup_shortcut(self):
@@ -215,11 +193,7 @@ class MainWindow(QMainWindow):
         shortcut_path = os.path.join(winshell.startup(), "SteamShine.lnk")
 
         winshell.CreateShortcut(
-            Path=shortcut_path,
-            Target=target,
-            StartIn=start_dir,
-            Icon=(target, 0),
-            Description="SteamShine"
+            Path=shortcut_path, Target=target, StartIn=start_dir, Icon=(target, 0), Description="SteamShine"
         )
 
     def delete_startup_shortcut(self):
@@ -231,12 +205,12 @@ class MainWindow(QMainWindow):
         shortcut_path = os.path.join(winshell.startup(), "SteamShine.lnk")
         self.ui.startupCheckBox.setChecked(os.path.exists(shortcut_path))
 
+
 def main():
     # These arguments are used by SteamShine itself.
-    #DEFAULT_STEAMAPPS_PATH = r"C:\Program Files (x86)\Steam\steamapps"
     parser = argparse.ArgumentParser(description="SteamShine Application")
-    parser.add_argument('--exit-game', action='store_true')
-    parser.add_argument('--monitor-process', type=str)
+    parser.add_argument("--exit-game", action="store_true")
+    parser.add_argument("--monitor-process", type=str)
     args = parser.parse_args()
 
     if args.exit_game:
@@ -244,11 +218,27 @@ def main():
     elif args.monitor_process:
         monitor_steam_process(args.monitor_process)
     else:
-        print("Starting SteamShine GUI")
         app = QApplication(sys.argv)
-        app.setStyle('Fusion')
+        translator = QTranslator()
+        locale = QLocale.system().name()
+        if locale.startswith("en"):
+            file_name = "tr/steamshine_en.qm"
+        elif locale.startswith("es"):
+            file_name = "tr/steamshine_es.qm"
+        elif locale.startswith("fr"):
+            file_name = "tr/steamshine_fr.qm"
+        elif locale.startswith("de"):
+            file_name = "tr/steamshine_de.qm"
+        else:
+            file_name = None
+
+        if file_name and translator.load(file_name):
+            app.installTranslator(translator)
+
+        app.setStyle("Fusion")
         window = MainWindow()
         sys.exit(app.exec())
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
