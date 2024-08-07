@@ -7,34 +7,4 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12.4'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Build executable
-        run: python src/setup.py build
-
-      - name: Zip SteamShine folder
-        run: |
-          $zipFile = "build/SteamShine_win64.zip"
-          $folder = "build/SteamShine"
-          Compress-Archive -Path $folder -DestinationPath $zipFile
-        shell: pwsh
-
-      - name: Upload SteamShine zip
-        uses: actions/upload-artifact@v3
-        with:
-          name: SteamShine
-          path: build/SteamShine_win64.zip
+    uses: odizinne/shared-workflows/.github/workflows/build.yml@main

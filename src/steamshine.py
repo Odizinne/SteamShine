@@ -220,15 +220,10 @@ def main():
     else:
         app = QApplication(sys.argv)
         translator = QTranslator()
-        locale = QLocale.system().name()
-        if locale.startswith("en"):
-            file_name = "tr/steamshine_en.qm"
-        elif locale.startswith("es"):
-            file_name = "tr/steamshine_es.qm"
-        elif locale.startswith("fr"):
-            file_name = "tr/steamshine_fr.qm"
-        elif locale.startswith("de"):
-            file_name = "tr/steamshine_de.qm"
+        locale_name = QLocale.system().name()
+        locale = locale_name[:2]
+        if locale:
+            file_name = f"tr/steamshine_{locale}.qm"
         else:
             file_name = None
 
