@@ -19,7 +19,7 @@
     <message>
         <location filename="../designer/ui_mainwindow.ui" line="0"/>
         <source>SteamShine - Settings</source>
-        <translation>Paramètres SteamShine</translation>
+        <translation>SteamShine - Paramètres</translation>
     </message>
     <message>
         <location filename="../designer/ui_mainwindow.ui" line="0"/>
@@ -67,9 +67,9 @@
         <source>Advanced mode will try to bind to launched game executable,
 allowing to quit stream on game ending and vice versa.
 This is experimental and might not work everytime.</source>
-        <translation>Le mode avancé va tenter de se lier à l&apos;executable du jeu,
+        <translation type="unfinished">Le mode avancé va tenter de se lier à l&apos;éxecutable du jeu,
 permettant de quitter le stream à la fin du jeu et vice versa.
-Cela reste expérimental et peut ne pas fonctionner à chaque fois.</translation>
+Cette fonction est expérimentale et peut ne pas fonctionner à chaque fois.</translation>
     </message>
     <message>
         <location filename="../designer/ui_mainwindow.ui" line="0"/>
