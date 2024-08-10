@@ -74,8 +74,8 @@ class MainWindow(QMainWindow):
         tray_icon.setVisible(True)
 
         tray_menu = QMenu()
-        settings_action = QAction("Settings", self)
-        quit_action = QAction("Quit", self)
+        settings_action = QAction(self.tr("Settings"), self)
+        quit_action = QAction(self.tr("Quit"), self)
 
         tray_menu.addAction(settings_action)
         tray_menu.addAction(quit_action)

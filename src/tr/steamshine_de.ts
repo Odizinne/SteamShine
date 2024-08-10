@@ -2,6 +2,19 @@
 <!DOCTYPE TS>
 <TS version="2.1">
   <context>
+    <name>MainWindow</name>
+    <message>
+      <location filename="..\steamshine.py" line="77" />
+      <source>Settings</source>
+      <translation type="unfinished" />
+    </message>
+    <message>
+      <location filename="..\steamshine.py" line="78" />
+      <source>Quit</source>
+      <translation type="unfinished" />
+    </message>
+  </context>
+  <context>
     <name>SteamShine</name>
     <message>
       <location filename="..\designer\ui_mainwindow.ui" line="0" />

@@ -10,18 +10,21 @@ OUTPUT_FILE = os.path.join(os.path.dirname(sys.executable), "process_log.txt")
 
 known_child_pids = set()
 
+
 def get_steam_process():
-    for process in psutil.process_iter(attrs=['pid', 'name']):
+    for process in psutil.process_iter(attrs=["pid", "name"]):
         try:
-            if 'steam.exe' in process.info['name'].lower():
+            if "steam.exe" in process.info["name"].lower():
                 return process
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
     return None
 
+
 def log_process(pid):
-    with open(OUTPUT_FILE, 'a') as f:
+    with open(OUTPUT_FILE, "a") as f:
         f.write(f"New process PID: {pid}\n")
+
 
 def monitor_steam_process(game_id):
     global known_child_pids
@@ -72,15 +75,14 @@ def monitor_steam_process(game_id):
             print("Steam process has terminated unexpectedly. Exiting...")
             break
 
-################################
 
 def read_pids_from_file(file_path):
     pids = []
     if os.path.exists(file_path):
-        with open(file_path, 'r') as file:
+        with open(file_path, "r") as file:
             for line in file:
                 parts = line.strip().split()
-                if len(parts) == 4 and parts[0] == 'New' and parts[1] == 'process' and parts[2] == 'PID:':
+                if len(parts) == 4 and parts[0] == "New" and parts[1] == "process" and parts[2] == "PID:":
                     try:
                         pids.append(int(parts[3]))
                     except ValueError:
@@ -88,6 +90,7 @@ def read_pids_from_file(file_path):
     else:
         print(f"File {file_path} does not exist.")
     return pids
+
 
 def terminate_processes(pids):
     for pid in pids:
@@ -101,12 +104,14 @@ def terminate_processes(pids):
         except Exception as e:
             print(f"Failed to terminate process PID: {pid}. Error: {e}")
 
+
 def delete_file(file_path):
     if os.path.exists(file_path):
         os.remove(file_path)
         print(f"Deleted file: {file_path}")
     else:
         print(f"File {file_path} does not exist.")
+
 
 def exit_game():
     pids = read_pids_from_file(OUTPUT_FILE)
@@ -115,5 +120,3 @@ def exit_game():
         delete_file(OUTPUT_FILE)
     else:
         print("No PIDs to process.")
-
-
