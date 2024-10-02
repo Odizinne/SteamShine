@@ -174,8 +174,8 @@ class MainWindow(QMainWindow):
 
         parser = ACFParser(steam_apps_directory)
         games = parser.get_steam_games()
-        working_dir = os.path.abspath(sys.executable)
         executable = os.path.abspath(sys.executable)
+        working_dir = os.path.dirname(executable)
 
         # Create a directory to store game images if it doesn't exist
         image_dir = os.path.join(os.getenv("APPDATA"), "Steamshine", "steam_images")
@@ -193,9 +193,9 @@ class MainWindow(QMainWindow):
             if self.ui.advancedCheckBox.isChecked():
                 new_apps[app_name] = {
                     "name": app_name,
-                    "cmd": f'cmd /c ""{executable}" --monitor-process "{app_id}""',
+                    "cmd": f"{executable} --monitor-process {app_id}",
                     "working-dir": working_dir,
-                    "prep-cmd": [{"do": "", "undo": f'cmd /c ""{executable}" --exit-game"', "elevated": "false"}],
+                    "prep-cmd": [{"do": "", "undo": f"{executable} --exit-game", "elevated": "false"}],
                     "image-path": image_path,  # Include the image path
                 }
             else:
