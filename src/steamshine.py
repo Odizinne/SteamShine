@@ -1,3 +1,4 @@
+import urllib.request
 import sys
 import os
 import json
@@ -10,6 +11,39 @@ from ui_mainwindow import Ui_SteamShine
 from acf_parser import ACFParser
 from color_utils import set_frame_color_based_on_window
 from steam_process_manager import exit_game, monitor_steam_process
+from PIL import Image
+
+
+def download_and_convert_image(app_id, image_dir):
+    """Download the game's image, crop it to 600x800, and convert it to PNG format."""
+    image_url = f"https://steamcdn-a.akamaihd.net/steam/apps/{app_id}/library_600x900_2x.jpg"
+    jpg_image_path = os.path.join(image_dir, f"{app_id}_cover.jpg")
+    png_image_path = os.path.join(image_dir, f"{app_id}_cover.png")
+
+    try:
+        # Download the image
+        urllib.request.urlretrieve(image_url, jpg_image_path)
+
+        # Open the image
+        img = Image.open(jpg_image_path)
+
+        # Crop 50px from top and bottom to change from 600x900 to 600x800
+        width, height = img.size
+        if width == 600 and height == 900:
+            crop_box = (0, 50, 600, 850)  # (left, top, right, bottom)
+            img = img.crop(crop_box)
+
+        # Save the image as PNG
+        img.save(png_image_path, "PNG")
+
+        # Optionally remove the JPG after conversion
+        os.remove(jpg_image_path)
+
+        return png_image_path
+
+    except Exception as e:
+        print(f"Error downloading, cropping, or converting image for App ID {app_id}: {e}")
+        return ""  # Return an empty string if something goes wrong
 
 
 class MainWindow(QMainWindow):
@@ -133,6 +167,8 @@ class MainWindow(QMainWindow):
     def update_apps_json(self):
         steam_apps_directory = self.ui.steamappsLineEdit.text()
         apps_json_path = self.ui.appLineEdit.text()
+
+        # Check necessary conditions before proceeding
         if not steam_apps_directory or not apps_json_path or not self.ui.startCheckBox.isChecked():
             return
 
@@ -141,23 +177,35 @@ class MainWindow(QMainWindow):
         working_dir = os.path.abspath(sys.executable)
         executable = os.path.abspath(sys.executable)
 
+        # Create a directory to store game images if it doesn't exist
+        image_dir = os.path.join(os.getenv("APPDATA"), "Steamshine", "steam_images")
+        os.makedirs(image_dir, exist_ok=True)
+
         new_apps = {}
-        if self.ui.advancedCheckBox.isChecked():
-            for game in games:
-                app_id = game["appid"]
-                app_name = game["name"]
+        for game in games:
+            app_id = game["appid"]
+            app_name = game["name"]
+
+            # Download and convert the game cover image to PNG
+            image_path = download_and_convert_image(app_id, image_dir)
+
+            # Build the app entry based on the advanced setting
+            if self.ui.advancedCheckBox.isChecked():
                 new_apps[app_name] = {
                     "name": app_name,
                     "cmd": f'cmd /c ""{executable}" --monitor-process "{app_id}""',
                     "working-dir": working_dir,
                     "prep-cmd": [{"do": "", "undo": f'cmd /c ""{executable}" --exit-game"', "elevated": "false"}],
+                    "image-path": image_path,  # Include the image path
                 }
-        else:
-            for game in games:
-                app_id = game["appid"]
-                app_name = game["name"]
-                new_apps[app_name] = {"name": app_name, "detached": [f"steam://rungameid/{app_id}"]}
+            else:
+                new_apps[app_name] = {
+                    "name": app_name,
+                    "detached": [f"steam://rungameid/{app_id}"],
+                    "image-path": image_path,  # Include the image path
+                }
 
+        # Load existing data or create a new structure if the file doesn't exist
         if not os.path.exists(apps_json_path):
             with open(apps_json_path, "w") as apps_file:
                 json.dump({"env": {}, "apps": []}, apps_file, indent=4)
@@ -165,17 +213,22 @@ class MainWindow(QMainWindow):
         with open(apps_json_path, "r") as apps_file:
             old_data = json.load(apps_file)
 
+        # Preserve old entries not in the new_apps
         existing_entries = old_data.get("apps", [])
         preserved_entries = [entry for entry in existing_entries if "name" in entry and entry["name"] not in new_apps]
         preserved_entries_dict = {entry["name"]: entry for entry in preserved_entries}
         preserved_entries_dict.update(new_apps)
+
+        # Sort apps by name
         sorted_managed_apps = sorted(preserved_entries_dict.values(), key=lambda x: x["name"])
         new_data = {"env": old_data.get("env", {}), "apps": sorted_managed_apps}
 
+        # Save updated data to apps.json
         with open(apps_json_path, "w") as apps_file:
             json.dump(new_data, apps_file, indent=4)
             print("apps.json updated with changes")
 
+        # Update the UI
         self.update_game_list_widget(sorted_managed_apps)
         self.init_app_list = False
         self.force_update = False
